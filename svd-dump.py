@@ -9,23 +9,35 @@ Usage (inside gdb):
 
     (gdb) source /path/to/svd-dump.py
     (gdb) svd_load STMicro STM32F103xx.svd
-    (gdb) svd_show USB
-    USB @ 0x40005c00
-    EP0R   0x0000 0000000000000000 EA=0 STAT_TX=0 DTOG_TX=0 CTR_TX=0 EP_KIND=0 EP_TYPE=0 SETUP=0 STAT_RX=0 DTOG_RX=0 CTR_RX=0
-    EP1R   0x0004 0000000000000000 EA=0 STAT_TX=0 DTOG_TX=0 CTR_TX=0 EP_KIND=0 EP_TYPE=0 SETUP=0 STAT_RX=0 DTOG_RX=0 CTR_RX=0
-    EP2R   0x0008 0000000000000000 EA=0 STAT_TX=0 DTOG_TX=0 CTR_TX=0 EP_KIND=0 EP_TYPE=0 SETUP=0 STAT_RX=0 DTOG_RX=0 CTR_RX=0
-    EP3R   0x000c 0000000000000000 EA=0 STAT_TX=0 DTOG_TX=0 CTR_TX=0 EP_KIND=0 EP_TYPE=0 SETUP=0 STAT_RX=0 DTOG_RX=0 CTR_RX=0
-    EP4R   0x0010 0000000000000000 EA=0 STAT_TX=0 DTOG_TX=0 CTR_TX=0 EP_KIND=0 EP_TYPE=0 SETUP=0 STAT_RX=0 DTOG_RX=0 CTR_RX=0
-    EP5R   0x0014 0000000000000000 EA=0 STAT_TX=0 DTOG_TX=0 CTR_TX=0 EP_KIND=0 EP_TYPE=0 SETUP=0 STAT_RX=0 DTOG_RX=0 CTR_RX=0
-    EP6R   0x0018 0000000000000000 EA=0 STAT_TX=0 DTOG_TX=0 CTR_TX=0 EP_KIND=0 EP_TYPE=0 SETUP=0 STAT_RX=0 DTOG_RX=0 CTR_RX=0
-    EP7R   0x001c 0000000000000000 EA=0 STAT_TX=0 DTOG_TX=0 CTR_TX=0 EP_KIND=0 EP_TYPE=0 SETUP=0 STAT_RX=0 DTOG_RX=0 CTR_RX=0
-    CNTR   0x0040 0000000000000011 FRES=1 PDWN=1 LPMODE=0 FSUSP=0 RESUME=0 ESOFM=0 SOFM=0 RESETM=0 SUSPM=0 WKUPM=0 ERRM=0 PMAOVRM=0 CTRM=0
-    ISTR   0x0044 0000000000000000 EP_ID=0 DIR=0 ESOF=0 SOF=0 RESET=0 SUSP=0 WKUP=0 ERR=0 PMAOVR=0 CTR=0
-    FNR    0x0048 0000000000000000 FN=0 LSOF=0 LCK=0 RXDM=0 RXDP=0
-    DADDR  0x004c 0000000000000000 ADD=0 EF=0
-    BTABLE 0x0050 0000000000000000 BTABLE=0
-    (gdb) svd_show USB ISTR
-    ISTR 0x0044 0000000000000000 EP_ID=0 DIR=0 ESOF=0 SOF=0 RESET=0 SUSP=0 WKUP=0 ERR=0 PMAOVR=0 CTR=0
+
+    (gdb) svd_show USART1
+    USART1 @ 0x40013800
+    SR   CTS=0 LBD=0 TXE=0 TC=0 RXNE=0 IDLE=0 ORE=0 NE=0 FE=0 PE=0
+    DR   DR=0
+    BRR  DIV_Mantissa=0 DIV_Fraction=0
+    CR1  UE=0 M=0 WAKE=0 PCE=0 PS=0 PEIE=0 TXEIE=0 TCIE=0 RXNEIE=0 IDLEIE=0 TE=0 RE=0 RWU=0 SBK=0
+    CR2  LINEN=0 STOP=0 CLKEN=0 CPOL=0 CPHA=0 LBCL=0 LBDIE=0 LBDL=0 ADD=0
+    CR3  CTSIE=0 CTSE=0 RTSE=0 DMAT=0 DMAR=0 SCEN=0 NACK=0 HDSEL=0 IRLP=0 IREN=0 EIE=0
+    GTPR GT=0 PSC=0
+
+    (gdb) svd_show USART1 SR
+    SR CTS=0 LBD=0 TXE=0 TC=0 RXNE=0 IDLE=0 ORE=0 NE=0 FE=0 PE=0
+
+    (gdb) svd_show/x USART1 SR
+    SR 0x0000 CTS=00 LBD=00 TXE=00 TC=00 RXNE=00 IDLE=00 ORE=00 NE=00 FE=00 PE=00
+
+    (gdb) svd_show/b USART1 SR
+    SR 00000000000000000000000000000000 CTS=0 LBD=0 TXE=0 TC=0 RXNE=0 IDLE=0 ORE=0 NE=0 FE=0 PE=0
+
+    (gdb) svd_show/o USART1
+    USART1 @ 0x40013800
+    SR   0x0000 CTS=0 LBD=0 TXE=0 TC=0 RXNE=0 IDLE=0 ORE=0 NE=0 FE=0 PE=0
+    DR   0x0004 DR=0
+    BRR  0x0008 DIV_Mantissa=0 DIV_Fraction=0
+    CR1  0x000c UE=0 M=0 WAKE=0 PCE=0 PS=0 PEIE=0 TXEIE=0 TCIE=0 RXNEIE=0 IDLEIE=0 TE=0 RE=0 RWU=0 SBK=0
+    CR2  0x0010 LINEN=0 STOP=0 CLKEN=0 CPOL=0 CPHA=0 LBCL=0 LBDIE=0 LBDL=0 ADD=0
+    CR3  0x0014 CTSIE=0 CTSE=0 RTSE=0 DMAT=0 DMAR=0 SCEN=0 NACK=0 HDSEL=0 IRLP=0 IREN=0 EIE=0
+    GTPR 0x0018 GT=0 PSC=0
 
 Customization:
 To turn on colorizing non-zero values, set colorize = True
@@ -77,8 +89,13 @@ class SVDSelector(gdb.Command):
                 print("Usage: svd_load <vendor-name> <filename.svd>")
             elif len(args) >= 2:
                 filename = args[1]
-                parser = SVDParser.for_packaged_svd(vendor_name, filename)
-                _svd_printer.set_device(parser.get_device())
+                try:
+                    parser = SVDParser.for_packaged_svd(vendor_name, filename)
+                    _svd_printer.set_device(parser.get_device())
+                except IOError:
+                    print("Failed to load SVD file")
+                else:
+                    print("Loaded {}/{}".format(vendor_name, filename))
         else:
             print("Usage: svd_load <vendor-name> <filename.svd>")
 
@@ -99,8 +116,17 @@ class SVDPrinter(gdb.Command):
     def complete(self, text, word):
         if not self.device:
             return gdb.COMPLETE_NONE
-        
         args = gdb.string_to_argv(text)
+
+        # Skip over the /x in "svd_show/x"
+        if text.startswith("/"):
+            options = args[0][1:]
+            args = args[1:]
+            if text.startswith("/"+options):
+                text = text[1+len(options):]
+            if word.startswith(options):
+                word = ""
+
         num_args = len(args)
         if text.endswith(" "):
             num_args += 1
@@ -124,15 +150,31 @@ class SVDPrinter(gdb.Command):
             return register_names
         return gdb.COMPLETE_NONE
 
-    def dump_register(self, peripheral, register, name_width=0):
+    def dump_register(self, peripheral, register, name_width=0, options=""):
+        if not name_width:
+            name_width = len(register.name)
         val = struct.unpack("<L", gdb.inferiors()[0].read_memory(peripheral.base_address + register.address_offset, 4))[0];
-        print("%-*s 0x%04x %s" % (name_width, register.name, register.address_offset, '{0:016b}'.format(val))),
+        reg_fmt = "{name:<{width}s}"
+        if "o" in options:
+            reg_fmt += " 0x{offset:04x}"
+        if "b" in options:
+            reg_fmt += " {value:032b}"
+        print(reg_fmt.format(name=register.name,
+                             offset=register.address_offset,
+                             value=val,
+                             width=name_width)),
+        if "x" in options:
+            field_fmt = "{name}={value:02x}"
+            active_field_fmt = "\033[32m{name}={value:02x}\033[0m"
+        else:
+            field_fmt = "{name}={value:d}"
+            active_field_fmt = "\033[32m{name}={value:d}\033[0m"
         for field in register.fields:
             fieldval = (val >> field.bit_offset) & ((1 << field.bit_width) - 1)
             if self.colorize and fieldval > 0:
-                print("\033[32m%s=%02x(%d)\033[0m" % (field.name, fieldval, fieldval)),
+                print(active_field_fmt.format(name=field.name, value=fieldval)),
             else:
-                print("%s=%d" % (field.name, fieldval)),
+                print(field_fmt.format(name=field.name, value=fieldval)),
         print
     def invoke (self, arg, from_tty):
         if not self.device:
@@ -140,6 +182,13 @@ class SVDPrinter(gdb.Command):
             return
 
         args = gdb.string_to_argv(arg)
+
+        # Extract formatting options
+        options = ""
+        if args and args[0].startswith("/"):
+            options = args[0]
+            args = args[1:]
+        
         if len(args) >= 1:
             if args[0] not in self.peripherals:
                 print("Invalid peripheral name")
@@ -150,16 +199,16 @@ class SVDPrinter(gdb.Command):
                 if peripheral.registers:
                     width = max(len(reg.name) for reg in peripheral.registers) 
                     for register in peripheral.registers:
-                        self.dump_register(peripheral, register, width)
+                        self.dump_register(peripheral, register, width, options)
             elif len(args) == 2:
                 for register in peripheral.registers:
                     if register.name == args[1]:
-                        self.dump_register(peripheral, register)
+                        self.dump_register(peripheral, register, 0, options)
                         break
                 else:
                     print("Invalid register name")
         else:
-            print("Usage: svd_show peripheral-name [register-name]")
+            print("Usage: svd_show[/xob] peripheral-name [register-name]")
 
 SVDSelector()
 _svd_printer = SVDPrinter()
