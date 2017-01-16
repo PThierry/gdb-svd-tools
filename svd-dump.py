@@ -10,31 +10,40 @@ Usage (inside gdb):
     (gdb) source /path/to/svd-dump.py
     (gdb) svd_load STMicro STM32F103xx.svd
 
-    (gdb) svd_show USART1
-    USART1 @ 0x40013800
-    SR   CTS=0 LBD=0 TXE=0 TC=0 RXNE=0 IDLE=0 ORE=0 NE=0 FE=0 PE=0
+    # Show an entire peripheral
+    (gdb) svd_show USART2
+    USART2 @ 0x40004400
+    SR   CTS=0 LBD=0 TXE=1 TC=1 RXNE=0 IDLE=0 ORE=0 NE=0 FE=0 PE=0
     DR   DR=0
-    BRR  DIV_Mantissa=0 DIV_Fraction=0
-    CR1  UE=0 M=0 WAKE=0 PCE=0 PS=0 PEIE=0 TXEIE=0 TCIE=0 RXNEIE=0 IDLEIE=0 TE=0 RE=0 RWU=0 SBK=0
+    BRR  DIV_Mantissa=19 DIV_Fraction=8
+    CR1  UE=1 M=0 WAKE=0 PCE=0 PS=0 PEIE=0 TXEIE=0 TCIE=0 RXNEIE=0 IDLEIE=0 TE=1 RE=1 RWU=0 SBK=0
     CR2  LINEN=0 STOP=0 CLKEN=0 CPOL=0 CPHA=0 LBCL=0 LBDIE=0 LBDL=0 ADD=0
     CR3  CTSIE=0 CTSE=0 RTSE=0 DMAT=0 DMAR=0 SCEN=0 NACK=0 HDSEL=0 IRLP=0 IREN=0 EIE=0
     GTPR GT=0 PSC=0
 
-    (gdb) svd_show USART1 SR
-    SR CTS=0 LBD=0 TXE=0 TC=0 RXNE=0 IDLE=0 ORE=0 NE=0 FE=0 PE=0
+    # Show just one register
+    (gdb) svd_show USART2 BRR
+    BRR DIV_Mantissa=19 DIV_Fraction=8
 
-    (gdb) svd_show/x USART1 SR
-    SR 0x0000 CTS=00 LBD=00 TXE=00 TC=00 RXNE=00 IDLE=00 ORE=00 NE=00 FE=00 PE=00
+    # Show field values in hex
+    (gdb) svd_show/x USART2 BRR
+    BRR DIV_Mantissa=013 DIV_Fraction=8
 
-    (gdb) svd_show/b USART1 SR
-    SR 00000000000000000000000000000000 CTS=0 LBD=0 TXE=0 TC=0 RXNE=0 IDLE=0 ORE=0 NE=0 FE=0 PE=0
+    # Show field values in binary
+    (gdb) svd_show/b USART2 BRR
+    BRR DIV_Mantissa=000000010011 DIV_Fraction=1000
 
-    (gdb) svd_show/o USART1
-    USART1 @ 0x40013800
-    SR   0x0000 CTS=0 LBD=0 TXE=0 TC=0 RXNE=0 IDLE=0 ORE=0 NE=0 FE=0 PE=0
+    # Show whole register value in binary
+    (gdb) svd_show/i USART2 BRR
+    BRR 00000000000000000000000100111000 DIV_Mantissa=19 DIV_Fraction=8
+
+    # Show register offsets
+    (gdb) svd_show/f USART2
+    USART2 @ 0x40004400
+    SR   0x0000 CTS=0 LBD=0 TXE=1 TC=1 RXNE=0 IDLE=0 ORE=0 NE=0 FE=0 PE=0
     DR   0x0004 DR=0
-    BRR  0x0008 DIV_Mantissa=0 DIV_Fraction=0
-    CR1  0x000c UE=0 M=0 WAKE=0 PCE=0 PS=0 PEIE=0 TXEIE=0 TCIE=0 RXNEIE=0 IDLEIE=0 TE=0 RE=0 RWU=0 SBK=0
+    BRR  0x0008 DIV_Mantissa=19 DIV_Fraction=8
+    CR1  0x000c UE=1 M=0 WAKE=0 PCE=0 PS=0 PEIE=0 TXEIE=0 TCIE=0 RXNEIE=0 IDLEIE=0 TE=1 RE=1 RWU=0 SBK=0
     CR2  0x0010 LINEN=0 STOP=0 CLKEN=0 CPOL=0 CPHA=0 LBCL=0 LBDIE=0 LBDL=0 ADD=0
     CR3  0x0014 CTSIE=0 CTSE=0 RTSE=0 DMAT=0 DMAR=0 SCEN=0 NACK=0 HDSEL=0 IRLP=0 IREN=0 EIE=0
     GTPR 0x0018 GT=0 PSC=0
@@ -155,26 +164,35 @@ class SVDPrinter(gdb.Command):
             name_width = len(register.name)
         val = struct.unpack("<L", gdb.inferiors()[0].read_memory(peripheral.base_address + register.address_offset, 4))[0];
         reg_fmt = "{name:<{width}s}"
-        if "o" in options:
+        if "f" in options:
             reg_fmt += " 0x{offset:04x}"
-        if "b" in options:
+        if "i" in options:
             reg_fmt += " {value:032b}"
         print(reg_fmt.format(name=register.name,
                              offset=register.address_offset,
                              value=val,
                              width=name_width)),
         if "x" in options:
-            field_fmt = "{name}={value:02x}"
-            active_field_fmt = "\033[32m{name}={value:02x}\033[0m"
+            field_fmt = "{name}={value:0{hex_width}x}"
+            active_field_fmt = "\033[32m{name}={value:0{hex_width}x}\033[0m"
+        elif "b" in options:
+            field_fmt = "{name}={value:0{bit_width}b}"
+            active_field_fmt = "\033[32m{name}={value:0{bit_width}b}\033[0m"
         else:
             field_fmt = "{name}={value:d}"
             active_field_fmt = "\033[32m{name}={value:d}\033[0m"
         for field in register.fields:
             fieldval = (val >> field.bit_offset) & ((1 << field.bit_width) - 1)
+            hex_width = (field.bit_width + 3) // 4
             if self.colorize and fieldval > 0:
-                print(active_field_fmt.format(name=field.name, value=fieldval)),
+                fmt = active_field_fmt
             else:
-                print(field_fmt.format(name=field.name, value=fieldval)),
+                fmt = field_fmt
+            
+            print(fmt.format(name=field.name,
+                             value=fieldval,
+                             bit_width=field.bit_width,
+                             hex_width=hex_width)),
         print
     def invoke (self, arg, from_tty):
         if not self.device:
@@ -208,7 +226,7 @@ class SVDPrinter(gdb.Command):
                 else:
                     print("Invalid register name")
         else:
-            print("Usage: svd_show[/xob] peripheral-name [register-name]")
+            print("Usage: svd_show[/[x|b]fi] peripheral-name [register-name]")
 
 SVDSelector()
 _svd_printer = SVDPrinter()
