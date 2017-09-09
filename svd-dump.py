@@ -90,23 +90,23 @@ class SVDSelector(gdb.Command):
         args = gdb.string_to_argv(arg)
         if len(args) >= 1:
             if args[0] not in self.vendors:
-                print("Invalid vendor name")
+                raise gdb.GdbError("Invalid vendor name")
                 return
             vendor_name = args[0]
             vendor_filenames = self.vendors[vendor_name]
             if len(args) == 1:
-                print("Usage: svd_load <vendor-name> <filename.svd>")
+                raise gdb.GdbError("Usage: svd_load <vendor-name> <filename.svd>")
             elif len(args) >= 2:
                 filename = args[1]
                 try:
                     parser = SVDParser.for_packaged_svd(vendor_name, filename)
                     _svd_printer.set_device(parser.get_device())
                 except IOError:
-                    print("Failed to load SVD file")
+                    raise gdb.GdbError("Failed to load SVD file")
                 else:
                     print("Loaded {}/{}".format(vendor_name, filename))
         else:
-            print("Usage: svd_load <vendor-name> <filename.svd>")
+            raise gdb.GdbError("Usage: svd_load <vendor-name> <filename.svd>")
 
 class SVDPrinter(gdb.Command):
     colorize = False
@@ -168,6 +168,8 @@ class SVDPrinter(gdb.Command):
             reg_fmt += " 0x{offset:04x}"
         if "i" in options:
             reg_fmt += " {value:032b}"
+        elif "h" in options:
+            reg_fmt += " {value:08x}"
         print(reg_fmt.format(name=register.name,
                              offset=register.address_offset,
                              value=val,
@@ -195,38 +197,41 @@ class SVDPrinter(gdb.Command):
                              hex_width=hex_width)),
         print
     def invoke (self, arg, from_tty):
-        if not self.device:
-            print("Use svd_load to load an SVD file first")
-            return
-
-        args = gdb.string_to_argv(arg)
-
-        # Extract formatting options
-        options = ""
-        if args and args[0].startswith("/"):
-            options = args[0]
-            args = args[1:]
-        
-        if len(args) >= 1:
-            if args[0] not in self.peripherals:
-                print("Invalid peripheral name")
+        try:
+            if not self.device:
+                raise gdb.GdbError("Use svd_load to load an SVD file first")
                 return
-            peripheral = self.peripherals[args[0]]
-            if len(args) == 1:
-                print("%s @ 0x%08x" % (peripheral.name, peripheral.base_address))
-                if peripheral.registers:
-                    width = max(len(reg.name) for reg in peripheral.registers) 
+
+            args = gdb.string_to_argv(arg)
+
+            # Extract formatting options
+            options = ""
+            if args and args[0].startswith("/"):
+                options = args[0]
+                args = args[1:]
+
+            if len(args) >= 1:
+                if args[0] not in self.peripherals:
+                    raise gdb.GdbError("Invalid peripheral name")
+                    return
+                peripheral = self.peripherals[args[0]]
+                if len(args) == 1:
+                    print("%s @ 0x%08x" % (peripheral.name, peripheral.base_address))
+                    if peripheral.registers:
+                        width = max(len(reg.name) for reg in peripheral.registers) 
+                        for register in peripheral.registers:
+                            self.dump_register(peripheral, register, width, options)
+                elif len(args) == 2:
                     for register in peripheral.registers:
-                        self.dump_register(peripheral, register, width, options)
-            elif len(args) == 2:
-                for register in peripheral.registers:
-                    if register.name == args[1]:
-                        self.dump_register(peripheral, register, 0, options)
-                        break
-                else:
-                    print("Invalid register name")
-        else:
-            print("Usage: svd_show[/[x|b]fi] peripheral-name [register-name]")
+                        if register.name == args[1]:
+                            self.dump_register(peripheral, register, 0, options)
+                            break
+                    else:
+                        raise gdb.GdbError("Invalid register name")
+            else:
+                raise gdb.GdbError("Usage: svd_show[/[x|b]fi] peripheral-name [register-name]")
+        except KeyboardInterrupt:
+            pass
 
 SVDSelector()
 _svd_printer = SVDPrinter()
