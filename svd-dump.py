@@ -48,6 +48,9 @@ Usage (inside gdb):
     CR3  0x0014 CTSIE=0 CTSE=0 RTSE=0 DMAT=0 DMAR=0 SCEN=0 NACK=0 HDSEL=0 IRLP=0 IREN=0 EIE=0
     GTPR 0x0018 GT=0 PSC=0
 
+    # Loading from an external SVD file
+    (gdb) svd_load_file /path/to/your_file.svd
+
 Customization:
 To turn on colorizing non-zero values, set colorize = True
 (doesn't work in TUI mode)
@@ -107,6 +110,27 @@ class SVDSelector(gdb.Command):
                     print("Loaded {}/{}".format(vendor_name, filename))
         else:
             raise gdb.GdbError("Usage: svd_load <vendor-name> <filename.svd>")
+
+class SVDLoader(gdb.Command):
+    def __init__(self):
+        super(SVDLoader, self).__init__("svd_load_file", gdb.COMMAND_USER)
+
+    def complete(self, text, word):
+        return gdb.COMPLETE_FILENAME
+
+    def invoke(self, arg, from_tty):
+        args = gdb.string_to_argv(arg)
+        if len(args) != 1:
+            raise gdb.GdbError("Usage: svd_load_file <filename.svd>")
+
+        path = args[0]
+        try:
+            parser = SVDParser.for_xml_file(path)
+            _svd_printer.set_device(parser.get_device())
+        except IOError:
+            raise gdb.GdbError("Failed to load SVD file")
+        else:
+            print("Loaded {}".format(path))
 
 class SVDPrinter(gdb.Command):
     colorize = False
@@ -234,4 +258,5 @@ class SVDPrinter(gdb.Command):
             pass
 
 SVDSelector()
+SVDLoader()
 _svd_printer = SVDPrinter()
