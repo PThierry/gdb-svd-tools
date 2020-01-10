@@ -1,0 +1,60 @@
+define load_svd
+	source svd-dump.py
+	set architecture arm
+	target extended-remote localhost:3333
+	monitor reset halt
+	svd_load_file STM32F439x.svd
+end
+
+define go_rdp0
+	load_svd
+	# Set OPTKEY1 = 0x08192A3B
+	svd_set FLASH OPTKEYR OPTKEY 0x08192A3B
+	# Set OPTKEY2 = 0x4C5D6E7F
+	svd_set FLASH OPTKEYR OPTKEY 0x4C5D6E7F
+	# Clear OPTCR LOCK
+	svd_set FLASH OPTCR OPTLOCK 0
+	# The flash is now unlocked, set OPTCR to RDP0
+	svd_set FLASH OPTCR RDP 0xaa
+	# Set nWRP to remove potential Write Protection
+	svd_set FLASH OPTCR nWRP 0xfff	
+	svd_set FLASH OPTCR1 nWRP 0xfff	
+	# Set the option START bit
+	svd_set FLASH OPTCR OPTSTRT 1
+end
+
+define go_rdp1
+	load_svd
+	# Set OPTKEY1 = 0x08192A3B
+	svd_set FLASH OPTKEYR OPTKEY 0x08192A3B
+	# Set OPTKEY2 = 0x4C5D6E7F
+	svd_set FLASH OPTKEYR OPTKEY 0x4C5D6E7F
+	# Clear OPTCR LOCK
+	svd_set FLASH OPTCR OPTLOCK 0
+	# The flash is now unlocked, set OPTCR to RDP1
+	svd_set FLASH OPTCR RDP 0xbb
+	# Set the option START bit
+	svd_set FLASH OPTCR OPTSTRT 1
+end
+
+define go_rdp2
+	load_svd
+	svd_confirm "go to RDP2, this is IRREVERSIBLE! Are you sure?"
+	svd_load STMicro STM32F439x.svd
+	# Set OPTKEY1 = 0x08192A3B
+	svd_set FLASH OPTKEYR OPTKEY 0x08192A3B
+	# Set OPTKEY2 = 0x4C5D6E7F
+	svd_set FLASH OPTKEYR OPTKEY 0x4C5D6E7F
+	# Clear OPTCR LOCK
+	svd_set FLASH OPTCR OPTLOCK 0
+	# The flash is now unlocked, set OPTCR to RDP2
+	svd_set FLASH OPTCR RDP 0xcc
+	# Set the option START bit
+	svd_set FLASH OPTCR OPTSTRT 1
+end
+
+define get_rdp
+	load_svd
+	svd_show/x FLASH OPTCR RDP
+	shell echo "NOTE: RDP=aa means RDP0, RDP=CC means RDP2, everything else means RDP1"
+end
