@@ -6,6 +6,33 @@ This tool handle SVD device canonical manipulation in gdb, simplyfying debugging
 
 SVD files are not hosted here, as they are hosted in the cmsis-svd python module
 
+## Install dependencies
+
+```
+pip install -U cmsis-svd
+```
+
+or inside a virtualenv:
+```
+python -m venv venv
+venv/bin/pip install -r requirements.txt
+```
+
+**NOTE**: in order to use the virtualenv append the following snippet to your `.gdbinit`
+to update the GDB's Python paths [[ref](https://interrupt.memfault.com/blog/using-pypi-packages-with-gdb#setting-syspath-within-gdbinit)]:
+```python
+python
+import os,subprocess,sys
+paths = subprocess.check_output('python -c "import os,sys;print(os.linesep.join(sys.path).strip())"',shell=True).decode("utf-8").split()
+sys.path.extend(paths)
+end
+```
+
+then activate the virtualenv before launching gdb:
+```
+source /path/to/gdb-svd-tools/venv/bin/activate
+```
+
 ## using in gdb
 
 An example gdb file is written, including commands to load this python module and associated
